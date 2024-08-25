@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+    	<head>		
+        <script src="https://code.jquery.com/jquery-3.4.1.js"></script>		             
+        <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js" integrity="sha256-0YPKAwZP7Mp3ALMRVB2i8GXeEndvCq3eSl/WsAl1Ryk=" crossorigin="anonymous"></script>		
+        <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.1/themes/redmond/jquery-ui.css">		
+        <link href="https://fonts.googleapis.com/css?family=Mansalva|Solway&display=swap" rel="stylesheet"> 		
+        <title>Weather Forecast</title>
+    	</head>
+        
+        <style>
+body {
+    	/* background: url(https://static01.nyt.com/images/2014/05/25/magazine/25wmt/mag-25WMT-t_CA0-articleLarge.jpg?quality=75&auto=webp&disable=upscale); */
+    	background-color: rgb(0,39,255);
+        background-size: 150px 150px;	color: white;	
+        width: 100%;
+        font-family: "Mansalva", cursive;
+        text-align: center;	
+        text-decoration: underline;
+}
+.main_input
+{
+    border-color: lightgray;	
+    border-radius: 10px;	
+    border-style: solid;	
+    border-width: 20%;	
+    cursor: pointer;	
+    font-family: "Solway", serif;	
+    margin: 1%;	
+    padding: 2%;	
+    width: 50%;
+}
+.text_input
+{
+    border-color: lightgray;	
+    border-radius: 10px;	
+    border-style: solid;
+    border-width: 20%;	
+    font-family: "Solway", serif;	
+    margin: 3%;	
+    padding: 5%;	
+    width: 50%;	
+    height: auto;
+}
+        </style>
+    	<body>	
+        <h1>Weather Forecast</h1>		
+        <form autocomplete="off">			
+            <input name="city" id="city" type="text" class="text_input" placeholder="Enter your city..." autocomplete="false">			
+            <br>			
+            <select id="conversion_rates" class="main_input">				
+                <option value="K">Kelvin</option>				     
+                <option value="C">Celsius</option>				 
+                <option value="F">Fahrenheit</option>			
+            </select>			
+            <br>			
+            <input name="submit" type="button" class="main_input" onclick="check_weather()" value="Recieve Weather">		
+        </form>		
+        <div id="weather_dialog" title="Current Weather">			
+            <p id="city_name"></p>			<p id="description"></p>			
+            <p id="temp"></p>			<p id="temp_min"></p>			
+            <p id="temp_max"></p>			
+            <p id="clouds"></p>			
+            <p id="wind_speed"></p>			
+            <p id="weather_type"></p>	
+        	</div>		
+        <script>			
+            $("#weather_dialog").toggle();		
+            	$(function() {				$("#weather_dialog").dialog({autoOpen: false, draggable: false, resizable: false});			
+            });			
+            function convert(temperature, type)			
+            {				
+                if (type === "C")				
+                {					
+                    return "About " + (Math.floor(temperature - 273.15)).toString() + " degrees Celsius";				
+                }				
+                else if (type === "F")				
+                {					
+                    return "About " + (Math.floor((temperature - 273.15) * 1.8 + 32)).toString() + " degrees Fahrenheit";				
+                }				
+                else				
+                {					
+                    return "About " + (temperature).toString() + " degrees Kelvin";				
+                }			
+            }			
+            function get_weather(json)			
+            {				
+                if ("rain" in json.list[0])				
+                {					
+                    return "Rain: " + (json.list[0].rain["3h"]).toString() + " millimeters";				
+                }				
+                else if ("snow" in json.list[0])				
+                {					
+                    return "Snow: " + (json.list[0].snow["3h"]).toString() + " millimeters";				
+                }					
+            }			
+            function check_weather()			
+            {			 
+                var city = document.getElementById("city").value.toLowerCase();				
+                    $.getJSON("https://api.openweathermap.org/data/2.5/forecast?q=" + city + "&APPID=cdc7f09c777ad720a85f56c8734dc9a8", function(json)
+                 {					
+                     if (json.cod === "200")					
+                     {						
+                         var conversion_rate = document.getElementById("conversion_rates").value;					
+                         var temp = convert(json.list[0].main.temp, conversion_rate);						
+                         var temp_min = convert(json.list[0].main.temp_min, conversion_rate);						
+                         var temp_max = convert(json.list[0].main.temp_max, conversion_rate);						
+                         var weather_type = get_weather(json);						
+                         $("#weather_dialog").dialog("open");						
+                         $("#city_name").text("City: " + json.city.name + ", " + json.city.country);					
+                         $("#description").text("Description: " + json.list[0].weather[0].description);						
+                         $("#temp").text("Current temperature: " + temp);						
+                         $("#temp_min").text("Lowest temperature today: " + temp_min);						
+                         $("#temp_max").text("Highest temperature today: " + temp_max);						
+                         $("#clouds").text("Clouds: " + (json.list[0].clouds.all).toString() + "%");						
+                         $("#wind_speed").text("Wind speed: " + (json.list[0].wind.speed).toString() + " meters per second");						
+                         $("#weather_type").text(weather_type);					
+                     }			
+                 });			
+             }		
+         </script>	
+     </body>
+</html>
